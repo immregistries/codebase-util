@@ -1,0 +1,67 @@
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="codeset">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element type="xs:string" name="label"/>
+        <xs:element name="code">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element type="xs:string" name="value"/>
+              <xs:element type="xs:string" name="label"/>
+              <xs:element type="xs:string" name="description"/>
+              <xs:element name="code-status">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element type="xs:string" name="status"/>
+                    <xs:element name="deprecated">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element type="xs:string" name="new-code-value"/>
+                          <xs:element type="xs:string" name="reason"/>
+                          <xs:element type="xs:string" name="effective-date"/>
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="reference">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="code" maxOccurs="unbounded" minOccurs="0">
+                      <xs:complexType>
+                        <xs:simpleContent>
+                          <xs:extension base="xs:string">
+                            <xs:attribute type="xs:string" name="codeset" use="optional"/>
+                          </xs:extension>
+                        </xs:simpleContent>
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="use-date">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element type="xs:string" name="not-before"/>
+                    <xs:element type="xs:string" name="not-expected-before"/>
+                    <xs:element type="xs:string" name="not-expected-after"/>
+                    <xs:element type="xs:string" name="not-after"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="use-age">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element type="xs:short" name="not-before-month"/>
+                    <xs:element type="xs:short" name="not-after-month"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

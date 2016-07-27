@@ -4,7 +4,7 @@
   <groupId>org.openimmunizationsoftware.dqa.codebase.util</groupId>
   <artifactId>ois-dqa-codebase-util</artifactId>
   <packaging>jar</packaging>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.0</version>
   <name>ois-dqa-codebase-util</name>
   <url>http://maven.apache.org</url>
   <dependencies>

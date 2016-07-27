@@ -3,7 +3,7 @@
     <xs:complexType>
       <xs:sequence>
         <xs:element type="xs:string" name="label"/>
-        <xs:element name="code">
+        <xs:element name="code" maxOccurs="unbounded" minOccurs="0">
           <xs:complexType>
             <xs:sequence>
               <xs:element type="xs:string" name="value"/>
@@ -28,7 +28,7 @@
               <xs:element name="reference">
                 <xs:complexType>
                   <xs:sequence>
-                    <xs:element name="code" maxOccurs="unbounded" minOccurs="0">
+                    <xs:element name="link-to" maxOccurs="unbounded" minOccurs="0">
                       <xs:complexType>
                         <xs:simpleContent>
                           <xs:extension base="xs:string">
@@ -53,11 +53,13 @@
               <xs:element name="use-age">
                 <xs:complexType>
                   <xs:sequence>
-                    <xs:element type="xs:short" name="not-before-month"/>
-                    <xs:element type="xs:short" name="not-after-month"/>
+                    <xs:element type="xs:string" name="not-before-month"/>
+                    <xs:element type="xs:string" name="not-after-month"/>
                   </xs:sequence>
                 </xs:complexType>
               </xs:element>
+              <xs:element type="xs:string" name="concept-type"/>
+              <xs:element type="xs:string" name="test-age"/>
             </xs:sequence>
           </xs:complexType>
         </xs:element>

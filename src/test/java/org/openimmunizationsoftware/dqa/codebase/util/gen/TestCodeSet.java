@@ -4,7 +4,9 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 
-import org.openimmunizationsoftware.dqa.codebase.util.gen.Codeset.Code;
+import org.openimmunizationsoftware.dqa.codebase.util.gen.codeset.Codeset;
+import org.openimmunizationsoftware.dqa.codebase.util.gen.codeset.ObjectFactory;
+import org.openimmunizationsoftware.dqa.codebase.util.gen.codeset.Codeset.Code;
 
 import junit.framework.TestCase;
 

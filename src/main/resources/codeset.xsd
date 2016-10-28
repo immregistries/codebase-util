@@ -3,6 +3,7 @@
     <xs:complexType>
       <xs:sequence>
         <xs:element type="xs:string" name="label"/>
+        <xs:element type="xs:string" name="type"/>
         <xs:element name="code" maxOccurs="unbounded" minOccurs="0">
           <xs:complexType>
             <xs:sequence>

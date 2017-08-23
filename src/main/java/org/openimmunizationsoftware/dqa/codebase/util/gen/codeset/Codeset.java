@@ -320,7 +320,7 @@ public class Codeset {
         "conceptType",
         "testAge"
     })
-    public static class Code {
+    public static class Code  implements Comparable<Code>{
 
         @XmlElement(required = true)
         protected String value;
@@ -1130,6 +1130,12 @@ public class Codeset {
                 this.notAfter = value;
             }
 
+        }
+
+
+        @Override
+        public int compareTo(Code other) {
+          return this.getLabel().toUpperCase().compareTo(other.getLabel().toUpperCase());
         }
 
     }

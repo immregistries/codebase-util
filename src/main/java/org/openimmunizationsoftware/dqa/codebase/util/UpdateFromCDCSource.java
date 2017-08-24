@@ -39,8 +39,13 @@ import org.xml.sax.SAXException;
 
 public class UpdateFromCDCSource
 {
+  private static final String VACCINATION_VIS_DOC_TYPE_XML = "Vaccination VIS Doc Type.xml";
+  private static final String VACCINATION_VIS_VACCINES_XML = "Vaccination VIS Vaccines.xml";
+  private static final String VACCINATION_CPT_CODE_XML = "Vaccination CPT Code.xml";
+  private static final String VACCINATION_VACCINATION_TRADE_NAME_XML = "Vaccination Trade Name.xml";
   private static final String VACCINE_GROUP_XML = "Vaccine Group.xml";
   private static final String VACCINATION_CVX_CODE_XML = "Vaccination CVX Code.xml";
+  private static final String VACCINATION_MANUFACTURER_CODE_XML = "Vaccination Manufacturer Code.xml";
   private static final String VACCINATION_NDC_CODE_UNIT_OF_USE_XML = "Vaccination NDC Code Unit-of-Use.xml";
   private static final String VACCINATION_NDC_CODE_UNIT_OF_SALE_XML = "Vaccination NDC Code Unit-of-Sale.xml";
 
@@ -51,6 +56,8 @@ public class UpdateFromCDCSource
   private static final String CODE_SET_CVX = "VACCINATION_CVX_CODE";
   private static final String CODE_SET_MVX = "VACCINATION_MANUFACTURER_CODE";
   private static final String CODE_SET_VACCINE_GROUP = "VACCINE_GROUP";
+  private static final String CODE_SET_VACCINATION_VIS_DOC_TYPE = "VACCINATION_VIS_DOC_TYPE";
+  private static final String CODE_SET_VACCINATION_VIS_VACCINES = "VACCINATION_VIS_VACCINES";
 
   public static final String DEFAULT_CODEBASE_LOCATION = "../codebase";
 
@@ -62,6 +69,10 @@ public class UpdateFromCDCSource
   private File unitUseFile;
   private File cvxFile;
   private File vac2vgFile;
+  private File cptFile;
+  private File cvxvisFile;
+  private File mvxFile;
+  private File tradenameFile;
 
   public UpdateFromCDCSource(String[] args) throws IOException {
     String baseLocationString = DEFAULT_CODEBASE_LOCATION;
@@ -105,6 +116,26 @@ public class UpdateFromCDCSource
     vac2vgFile = new File(cdcSourceLocationFile, "vac2vg.xml");
     if (!vac2vgFile.exists()) {
       throw new IllegalArgumentException("Can't open Vac 2 Vaccine Group file: " + vac2vgFile.getCanonicalPath());
+    }
+
+    cptFile = new File(cdcSourceLocationFile, "cpt.xml");
+    if (!cptFile.exists()) {
+      throw new IllegalArgumentException("Can't open CPT file: " + cptFile.getCanonicalPath());
+    }
+
+    cvxvisFile = new File(cdcSourceLocationFile, "cvxvis.xml");
+    if (!cvxvisFile.exists()) {
+      throw new IllegalArgumentException("Can't open CVX VIS file: " + cvxvisFile.getCanonicalPath());
+    }
+
+    mvxFile = new File(cdcSourceLocationFile, "mvx.xml");
+    if (!mvxFile.exists()) {
+      throw new IllegalArgumentException("Can't open MVX file: " + mvxFile.getCanonicalPath());
+    }
+
+    tradenameFile = new File(cdcSourceLocationFile, "tradename.xml");
+    if (!tradenameFile.exists()) {
+      throw new IllegalArgumentException("Can't open Tradename file: " + tradenameFile.getCanonicalPath());
     }
   }
 
@@ -151,8 +182,11 @@ public class UpdateFromCDCSource
     }
 
     updateVaccineGroup();
-      updateCvx();
-
+    updateCvx();
+    updateCpt();
+    updateVis();
+    updateMvx();
+    updateTradename();
   }
 
   private void updateCvx() throws IOException {
@@ -196,12 +230,7 @@ public class UpdateFromCDCSource
                 } else if (n3Node.getNodeName().equals("Status")) {
                   status = clean(n3Node.getTextContent().trim());
                 } else if (n3Node.getNodeName().equals("LastUpdated")) {
-                  SimpleDateFormat sdf = new SimpleDateFormat("M/d/yyyy");
-                  try {
-                    lastUpdate = sdf.parse(clean(n3Node.getTextContent().trim()));
-                  } catch (DOMException | ParseException e) {
-                    e.printStackTrace();
-                  }
+                  lastUpdate = readDate(n3Node);
                 }
               }
               if (!cvxCode.equals("")) {
@@ -251,15 +280,7 @@ public class UpdateFromCDCSource
                   }
                 }
 
-                if (lastUpdate != null && (status.equals("Inactive") || status.equals("Active"))) {
-                  SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
-                  UseDate useDate = getUseDate(objectFactory, c);
-                  if (status.equals("Inactive") && useDate.getNotAfter() == null) {
-                    useDate.setNotAfter(sdf.format(lastUpdate));
-                  } else if (status.equals("Active") && useDate.getNotBefore() == null) {
-                    useDate.setNotBefore(sdf.format(lastUpdate));
-                  }
-                }
+                setUseDateBasedOnStatus(objectFactory, status, lastUpdate, c);
               }
 
             }
@@ -275,6 +296,107 @@ public class UpdateFromCDCSource
     countTotal = codeset.getCode().size();
     System.out.println("  + Added:   " + countAdded);
     System.out.println("  + Total:   " + countTotal);
+  }
+
+  private void updateMvx() throws IOException {
+    System.out.println("MVX");
+    ObjectFactory objectFactory = new ObjectFactory();
+    String filename = VACCINATION_MANUFACTURER_CODE_XML;
+    Codeset codeset = unmarshalCodeset(filename);
+    int countTotal = codeset.getCode().size();
+    int countAdded = 0;
+    if (codeset != null) {
+      try {
+        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder dbBuilder = dbFactory.newDocumentBuilder();
+        Document doc = dbBuilder.parse(mvxFile);
+        doc.getDocumentElement().normalize();
+        NodeList n0List = doc.getElementsByTagName("MVXCodes");
+        for (int level0 = 0; level0 < n0List.getLength(); level0++) {
+          Node n1Node = n0List.item(level0);
+          NodeList n1List = n1Node.getChildNodes();
+          for (int level1 = 0; level1 < n1List.getLength(); level1++) {
+            Node n2Node = n1List.item(level1);
+            if (n2Node.getNodeName().equals("MVXInfo")) {
+              NodeList n2List = n2Node.getChildNodes();
+              String mvxCode = "";
+              String manufacturerName = "";
+              String notes = "";
+              String status = "";
+              Date lastUpdate = null;
+              for (int level2 = 0; level2 < n2List.getLength(); level2++) {
+                Node n3Node = n2List.item(level2);
+                if (n3Node.getNodeName().equals("ManufacturerName")) {
+                  manufacturerName = clean(n3Node.getTextContent().trim());
+                } else if (n3Node.getNodeName().equals("MVX_CODE")) {
+                  mvxCode = clean(n3Node.getTextContent().trim());
+                } else if (n3Node.getNodeName().equals("Notes")) {
+                  notes = clean(n3Node.getTextContent().trim());
+                } else if (n3Node.getNodeName().equals("Status")) {
+                  status = clean(n3Node.getTextContent().trim());
+                } else if (n3Node.getNodeName().equals("LastUpdated")) {
+                  lastUpdate = readDate(n3Node);
+                }
+              }
+              if (!mvxCode.equals("")) {
+                Codeset.Code c = getOrCreateCode(codeset, mvxCode);
+                if (isEmpty(c.getLabel())) {
+                  c.setLabel(manufacturerName);
+                }
+                if (isEmpty(c.getDescription())) {
+                  c.setDescription(notes);
+                }
+                if (c.getCodeStatus() == null) {
+                  c.setCodeStatus(new Codeset.Code.CodeStatus());
+                }
+                if (c.getCodeStatus().getStatus() == null) {
+                  c.getCodeStatus().setStatus("Valid");
+                }
+                setUseDateBasedOnStatus(objectFactory, status, lastUpdate, c);
+              }
+            }
+          }
+        }
+      } catch (ParserConfigurationException | SAXException e) {
+        e.printStackTrace();
+      }
+
+      marshalCodeset(codeset, filename);
+    }
+    countAdded = codeset.getCode().size() - countTotal;
+    countTotal = codeset.getCode().size();
+    System.out.println("  + Added:   " + countAdded);
+    System.out.println("  + Total:   " + countTotal);
+  }
+
+  private void setUseDateBasedOnStatus(ObjectFactory objectFactory, String status, Date lastUpdate, Codeset.Code c) {
+    if (lastUpdate != null && (status.equals("Inactive") || status.equals("Active"))) {
+      SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+      UseDate useDate = getUseDate(objectFactory, c);
+      if (status.equals("Inactive") && useDate.getNotAfter() == null) {
+        useDate.setNotAfter(sdf.format(lastUpdate));
+      } else if (status.equals("Active") && useDate.getNotBefore() == null) {
+        useDate.setNotBefore(sdf.format(lastUpdate));
+      }
+    }
+  }
+
+  private Date readDate(Node n3Node) {
+    return readDate(clean(n3Node.getTextContent().trim()));
+  }
+
+  private Date readDate(String value) {
+    if (isEmpty(value)) {
+      return null;
+    }
+    SimpleDateFormat sdf = new SimpleDateFormat("M/d/yyyy");
+    Date date = null;
+    try {
+      date = sdf.parse(value);
+    } catch (DOMException | ParseException e) {
+      e.printStackTrace();
+    }
+    return date;
   }
 
   private void updateVaccineGroup() throws IOException {
@@ -298,26 +420,7 @@ public class UpdateFromCDCSource
             Node n2Node = n1List.item(level1);
             if (n2Node.getNodeName().equals("CVXVGInfo")) {
               NodeList n2List = n2Node.getChildNodes();
-              Map<String, String> nameValueMap = new HashMap<>();
-              {
-                String name = null;
-                String value = null;
-                for (int level2 = 0; level2 < n2List.getLength(); level2++) {
-                  Node n3Node = n2List.item(level2);
-                  if (n3Node.getNodeName().equals("Name")) {
-                    if (name != null && value != null) {
-                      nameValueMap.put(name, value);
-                      value = null;
-                    }
-                    name = clean(n3Node.getTextContent().trim());
-                  } else if (n3Node.getNodeName().equals("Value")) {
-                    value = clean(n3Node.getTextContent().trim());
-                  }
-                }
-                if (name != null && value != null) {
-                  nameValueMap.put(name, value);
-                }
-              }
+              Map<String, String> nameValueMap = readNameValueMap(n2List);
               String shortDescription = nameValueMap.get("ShortDescription");
               String cvxCode = nameValueMap.get("CVXCode");
               // String status = nameValueMap.get("Status");
@@ -362,6 +465,274 @@ public class UpdateFromCDCSource
       System.out.println("  + Added:   " + countAdded);
       System.out.println("  + Total:   " + countTotal);
     }
+  }
+
+  private void updateCpt() throws IOException {
+    System.out.println("CPT");
+    String filename = VACCINATION_CPT_CODE_XML;
+    Codeset codeset = unmarshalCodeset(filename);
+    int countTotal = codeset.getCode().size();
+    int countAdded = 0;
+    if (codeset != null) {
+      try {
+        ObjectFactory objectFactory = new ObjectFactory();
+        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder dbBuilder = dbFactory.newDocumentBuilder();
+        Document doc = dbBuilder.parse(cptFile);
+        doc.getDocumentElement().normalize();
+        NodeList n0List = doc.getElementsByTagName("CPTCodes");
+        for (int level0 = 0; level0 < n0List.getLength(); level0++) {
+          Node n1Node = n0List.item(level0);
+          NodeList n1List = n1Node.getChildNodes();
+          for (int level1 = 0; level1 < n1List.getLength(); level1++) {
+            Node n2Node = n1List.item(level1);
+            if (n2Node.getNodeName().equals("CPTInfo")) {
+              NodeList n2List = n2Node.getChildNodes();
+              Map<String, String> nameValueMap = readNameValueMap(n2List);
+              String cptCode = nameValueMap.get("CPT Code");
+              String cptDesc = nameValueMap.get("CPT Desc");
+              // String status = nameValueMap.get("Status");
+              String comments = nameValueMap.get("Comments");
+              // String vaccineName = nameValueMap.get("Vaccine Name");
+              String cvxCode = nameValueMap.get("CVX Code");
+              // String lastUpdated = nameValueMap.get("LastUpdated");
+              Codeset.Code c = getOrCreateCode(codeset, cptCode);
+
+              if (isEmpty(c.getLabel())) {
+                c.setLabel(cptDesc);
+              }
+              if (isEmpty(c.getDescription())) {
+                c.setDescription(comments);
+              }
+              if (c.getCodeStatus() == null) {
+                c.setCodeStatus(objectFactory.createCodesetCodeCodeStatus());
+              }
+              if (isEmpty(c.getCodeStatus().getStatus())) {
+                c.getCodeStatus().setStatus("Valid");
+              }
+
+              setUniqueLink(objectFactory, cvxCode, c, CODE_SET_CVX);
+            }
+          }
+        }
+
+      } catch (ParserConfigurationException | SAXException e) {
+        e.printStackTrace();
+      }
+      marshalCodeset(codeset, filename);
+      countAdded = codeset.getCode().size() - countTotal;
+      countTotal = codeset.getCode().size();
+      System.out.println("  + Added:   " + countAdded);
+      System.out.println("  + Total:   " + countTotal);
+    }
+  }
+
+  private void updateTradename() throws IOException {
+    System.out.println("Tradename");
+    String filename = VACCINATION_VACCINATION_TRADE_NAME_XML;
+    Codeset codeset = unmarshalCodeset(filename);
+    int countTotal = codeset.getCode().size();
+    int countAdded = 0;
+    if (codeset != null) {
+      try {
+        ObjectFactory objectFactory = new ObjectFactory();
+        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder dbBuilder = dbFactory.newDocumentBuilder();
+        Document doc = dbBuilder.parse(tradenameFile);
+        doc.getDocumentElement().normalize();
+        NodeList n0List = doc.getElementsByTagName("productnames");
+        for (int level0 = 0; level0 < n0List.getLength(); level0++) {
+          Node n1Node = n0List.item(level0);
+          NodeList n1List = n1Node.getChildNodes();
+          for (int level1 = 0; level1 < n1List.getLength(); level1++) {
+            Node n2Node = n1List.item(level1);
+            if (n2Node.getNodeName().equals("prodInfo")) {
+              NodeList n2List = n2Node.getChildNodes();
+              Map<String, String> nameValueMap = readNameValueMap(n2List);
+              String cdcProductName = nameValueMap.get("CDC Product Name");
+              String shortDescription = nameValueMap.get("Short Description");
+              String cvxCode = nameValueMap.get("CVXCode");
+              // String manufacturer = nameValueMap.get("Manufacturer");
+              String mvxCode = nameValueMap.get("MVX Code");
+              // String mvxStatus = nameValueMap.get("MVX Status");
+              String productNameStatus = nameValueMap.get("Product name Status");
+              Date lastUpdated = readDate(nameValueMap.get("Last Updated"));
+              Codeset.Code c = getOrCreateCode(codeset, cdcProductName);
+              if (isEmpty(c.getLabel())) {
+                c.setLabel(shortDescription);
+              }
+              if (c.getCodeStatus() == null) {
+                c.setCodeStatus(objectFactory.createCodesetCodeCodeStatus());
+              }
+              if (isEmpty(c.getCodeStatus().getStatus())) {
+                c.getCodeStatus().setStatus("Valid");
+              }
+              setUniqueLink(objectFactory, cvxCode, c, CODE_SET_CVX);
+              setUniqueLink(objectFactory, mvxCode, c, CODE_SET_MVX);
+              setUseDateBasedOnStatus(objectFactory, productNameStatus, lastUpdated, c);
+            }
+          }
+        }
+
+      } catch (ParserConfigurationException | SAXException e) {
+        e.printStackTrace();
+      }
+      marshalCodeset(codeset, filename);
+      countAdded = codeset.getCode().size() - countTotal;
+      countTotal = codeset.getCode().size();
+      System.out.println("  + Added:   " + countAdded);
+      System.out.println("  + Total:   " + countTotal);
+    }
+  }
+
+  private void updateVis() throws IOException {
+    System.out.println("VIS");
+    String filenameDoc = VACCINATION_VIS_DOC_TYPE_XML;
+    String filenameVac = VACCINATION_VIS_VACCINES_XML;
+    Codeset codesetDoc = unmarshalCodeset(filenameDoc);
+    Codeset codesetVac = unmarshalCodeset(filenameVac);
+    int countTotalDoc = codesetDoc.getCode().size();
+    int countTotalVac = codesetVac.getCode().size();
+    int countAddedDoc = 0;
+    int countAddedVac = 0;
+    if (codesetDoc != null && codesetVac != null) {
+      try {
+        ObjectFactory objectFactory = new ObjectFactory();
+        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder dbBuilder = dbFactory.newDocumentBuilder();
+        Document doc = dbBuilder.parse(cvxvisFile);
+        doc.getDocumentElement().normalize();
+        NodeList n0List = doc.getElementsByTagName("CVXVIS");
+        for (int level0 = 0; level0 < n0List.getLength(); level0++) {
+          Node n1Node = n0List.item(level0);
+          NodeList n1List = n1Node.getChildNodes();
+          for (int level1 = 0; level1 < n1List.getLength(); level1++) {
+            Node n2Node = n1List.item(level1);
+            if (n2Node.getNodeName().equals("CVXVISMapping")) {
+              NodeList n2List = n2Node.getChildNodes();
+              String cvxCode = "";
+              // String cvxVaccineDescription = "";
+              String fullyEncodedString = "";
+              String visDocumentName = "";
+              Date visEditionDate = null;
+              // String status = "";
+              for (int level2 = 0; level2 < n2List.getLength(); level2++) {
+                Node n3Node = n2List.item(level2);
+                if (n3Node.getNodeName().equals("CVXCode")) {
+                  cvxCode = clean(n3Node.getTextContent().trim());
+                } else if (n3Node.getNodeName().equals("CVXVaccineDescription")) {
+                  // cvxVaccineDescription = clean(n3Node.getTextContent().trim());
+                } else if (n3Node.getNodeName().equals("Fully-encodedString")) {
+                  fullyEncodedString = clean(n3Node.getTextContent().trim());
+                } else if (n3Node.getNodeName().equals("VISDocumentName")) {
+                  visDocumentName = clean(n3Node.getTextContent().trim());
+                } else if (n3Node.getNodeName().equals("VISEditionDate")) {
+                  visEditionDate = readDate(n3Node);
+                } else if (n3Node.getNodeName().equals("Status")) {
+                  // status = clean(n3Node.getTextContent().trim());
+                }
+              }
+              if (!isEmpty(fullyEncodedString)) {
+                Codeset.Code c = getOrCreateCode(codesetDoc, fullyEncodedString);
+                if (isEmpty(c.getLabel())) {
+                  c.setLabel(visDocumentName);
+                }
+                if (c.getCodeStatus() == null) {
+                  c.setCodeStatus(objectFactory.createCodesetCodeCodeStatus());
+                }
+                if (isEmpty(c.getCodeStatus().getStatus())) {
+                  c.getCodeStatus().setStatus("Valid");
+                }
+                if (!isEmpty(cvxCode)) {
+                  setUniqueLink(objectFactory, cvxCode, c, CODE_SET_VACCINATION_VIS_VACCINES);
+                }
+                if (visEditionDate != null) {
+                  SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+                  UseDate useDate = getUseDate(objectFactory, c);
+                  useDate.setNotBefore(sdf.format(visEditionDate));
+                }
+              }
+              if (!isEmpty(cvxCode)) {
+                Codeset.Code c = getOrCreateCode(codesetVac, cvxCode);
+                if (isEmpty(c.getLabel())) {
+                  c.setLabel(visDocumentName);
+                }
+                if (c.getCodeStatus() == null) {
+                  c.setCodeStatus(objectFactory.createCodesetCodeCodeStatus());
+                }
+                if (isEmpty(c.getCodeStatus().getStatus())) {
+                  c.getCodeStatus().setStatus("Valid");
+                }
+                if (!isEmpty(fullyEncodedString)) {
+                  setUniqueLink(objectFactory, fullyEncodedString, c, CODE_SET_VACCINATION_VIS_DOC_TYPE);
+                }
+                if (visEditionDate != null) {
+                  SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+                  UseDate useDate = getUseDate(objectFactory, c);
+                  useDate.setNotBefore(sdf.format(visEditionDate));
+                }
+              }
+            }
+          }
+        }
+
+      } catch (ParserConfigurationException | SAXException e) {
+        e.printStackTrace();
+      }
+      marshalCodeset(codesetDoc, filenameDoc);
+      marshalCodeset(codesetVac, filenameVac);
+      countAddedDoc = codesetDoc.getCode().size() - countTotalDoc;
+      countTotalDoc = codesetDoc.getCode().size();
+      countAddedVac = codesetVac.getCode().size() - countTotalVac;
+      countTotalVac = codesetVac.getCode().size();
+      System.out.println("  + Added Doc:   " + countAddedDoc);
+      System.out.println("  + Total Doc:   " + countTotalDoc);
+      System.out.println("  + Added Vac:   " + countAddedVac);
+      System.out.println("  + Total Vac:   " + countTotalVac);
+    }
+  }
+
+  private void setUniqueLink(ObjectFactory objectFactory, String value, Codeset.Code c, String codeSetName) {
+    if (!isEmpty(value)) {
+      Reference reference = getReference(objectFactory, c);
+      boolean found = false;
+      for (LinkTo linkTo : reference.getLinkTo()) {
+        if (linkTo.getCodeset().equals(codeSetName)) {
+          linkTo.setValue(value);
+          found = true;
+        }
+      }
+      if (!found) {
+        LinkTo linkTo = objectFactory.createCodesetCodeReferenceLinkTo();
+        reference.getLinkTo().add(linkTo);
+        linkTo.setCodeset(codeSetName);
+        linkTo.setValue(value);
+      }
+    }
+  }
+
+  private Map<String, String> readNameValueMap(NodeList n2List) {
+    Map<String, String> nameValueMap = new HashMap<>();
+    {
+      String name = null;
+      String value = null;
+      for (int level2 = 0; level2 < n2List.getLength(); level2++) {
+        Node n3Node = n2List.item(level2);
+        if (n3Node.getNodeName().equals("Name")) {
+          if (name != null && value != null) {
+            nameValueMap.put(name, value);
+            value = null;
+          }
+          name = clean(n3Node.getTextContent().trim());
+        } else if (n3Node.getNodeName().equals("Value")) {
+          value = clean(n3Node.getTextContent().trim());
+        }
+      }
+      if (name != null && value != null) {
+        nameValueMap.put(name, value);
+      }
+    }
+    return nameValueMap;
   }
 
   private Codeset.Code getOrCreateCode(Codeset codeset, String value) {

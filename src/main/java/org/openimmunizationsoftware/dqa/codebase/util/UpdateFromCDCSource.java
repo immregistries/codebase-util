@@ -24,7 +24,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.openimmunizationsoftware.dqa.codebase.util.gen.codebase.Codebase.Codeset.Code.CodeStatus;
 import org.openimmunizationsoftware.dqa.codebase.util.gen.codeset.Codeset;
 import org.openimmunizationsoftware.dqa.codebase.util.gen.codeset.Codeset.Code;
 import org.openimmunizationsoftware.dqa.codebase.util.gen.codeset.Codeset.Code.Reference;
@@ -48,6 +47,17 @@ public class UpdateFromCDCSource
   private static final String VACCINATION_MANUFACTURER_CODE_XML = "Vaccination Manufacturer Code.xml";
   private static final String VACCINATION_NDC_CODE_UNIT_OF_USE_XML = "Vaccination NDC Code Unit-of-Use.xml";
   private static final String VACCINATION_NDC_CODE_UNIT_OF_SALE_XML = "Vaccination NDC Code Unit-of-Sale.xml";
+  private static final String VACCINATION_INJECTION_AMOUNT = "Injection Amount.xml";
+  private static final String VACCINATION_INJECTION_GUIDANCE = "Injection Guidance.xml";
+  private static final String VACCINATION_INJECTION_GUIDANCE_SITE = "Injection Guidance Site.xml";
+  private static final String BODY_ROUTE = "Body Route.xml";
+  private static final String BODY_SITE = "Body Site.xml";
+
+  private static final String[] ALL_XML = { VACCINATION_VIS_DOC_TYPE_XML, VACCINATION_VIS_VACCINES_XML,
+      VACCINATION_CPT_CODE_XML, VACCINATION_VACCINATION_TRADE_NAME_XML, VACCINE_GROUP_XML, VACCINATION_CVX_CODE_XML,
+      VACCINATION_MANUFACTURER_CODE_XML, VACCINATION_NDC_CODE_UNIT_OF_USE_XML, VACCINATION_NDC_CODE_UNIT_OF_SALE_XML,
+      VACCINATION_INJECTION_AMOUNT, VACCINATION_INJECTION_GUIDANCE, VACCINATION_INJECTION_GUIDANCE_SITE, BODY_ROUTE,
+      BODY_SITE };
 
   private static final String CODE_SET_UNIT_OF_USE_LABEL = "Vaccination NDC for Unit-of-Use";
   private static final String CODE_SET_UNIT_OF_SALE_LABEL = "Vaccination NDC for Unit-of-Sale";
@@ -187,6 +197,8 @@ public class UpdateFromCDCSource
     updateVis();
     updateMvx();
     updateTradename();
+
+    crossLink();
   }
 
   private void updateCvx() throws IOException {
@@ -253,6 +265,8 @@ public class UpdateFromCDCSource
                 if (c.getConceptType() == null) {
                   if (status.equals("Never Active")) {
                     c.setConceptType("never active");
+                  } else if (status.equals("Pending")) {
+                    c.setConceptType("pending");
                   } else if (status.equals("Non-US")) {
                     c.setConceptType("foreign vaccine");
                   } else {
@@ -583,6 +597,80 @@ public class UpdateFromCDCSource
       System.out.println("  + Added:   " + countAdded);
       System.out.println("  + Total:   " + countTotal);
     }
+  }
+
+  private void crossLink() {
+    System.out.println("Cross Linking the following:");
+    Map<String, String> codesestFilenameMap = new HashMap<>();
+    Map<String, Map<String, Code>> codesetCodeMap = new HashMap<>();
+    List<Codeset> codesetList = new ArrayList<>();
+    for (String filename : ALL_XML) {
+      Codeset codeset = unmarshalCodeset(filename);
+      codesetList.add(codeset);
+      Map<String, Code> codeMap = new HashMap<>();
+      codesetCodeMap.put(codeset.getType(), codeMap);
+      for (Code code : codeset.getCode()) {
+        codeMap.put(code.getValue(), code);
+      }
+      codesestFilenameMap.put(codeset.getType(), filename);
+      codeset.getType();
+      System.out.println("  + " + codeset.getType());
+    }
+    for (Codeset codeset : codesetList) {
+      System.out.println("Linking out from: " + codeset.getType());
+      int linksExamined = 0;
+      int linksMade = 0;
+      for (Code code : codeset.getCode()) {
+        if (code.getReference() != null) {
+          for (LinkTo linkTo : code.getReference().getLinkTo()) {
+            linksExamined++;
+            String otherCodesetType = linkTo.getCodeset();
+            Map<String, Code> otherCodeMap = codesetCodeMap.get(otherCodesetType);
+            if (otherCodeMap == null) {
+              System.err.println("  + Unable to find link to codeset '" + otherCodesetType + "'");
+            } else {
+              if (linkTo.getValue() == null || linkTo.getValue().equals("")) {
+                System.err.println("  + Link has no value in '" + code.getValue() + "'");
+              } else {
+                Code otherCode = otherCodeMap.get(linkTo.getValue());
+                if (otherCode == null) {
+                  System.err
+                      .println("  + Unable to find link from '" + code.getValue() + "' in codeset '" + codeset.getType()
+                          + "' to code '" + linkTo.getValue() + "' in codeset '" + otherCodesetType + "'");
+                } else {
+                  if (otherCode.getReference() == null) {
+                    otherCode.setReference(new Reference());
+                  }
+                  boolean found = false;
+                  String type = codeset.getType();
+                  String value = code.getValue();
+                  for (LinkTo otherLinkTo : otherCode.getReference().getLinkTo()) {
+                    if (otherLinkTo.getCodeset().equals(type) && otherLinkTo.getValue().equals(value)) {
+                      found = true;
+                      break;
+                    }
+                  }
+                  if (!found) {
+                    LinkTo otherLinkTo = new LinkTo();
+                    otherLinkTo.setCodeset(type);
+                    otherLinkTo.setValue(value);
+                    otherCode.getReference().getLinkTo().add(otherLinkTo);
+                    linksMade++;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      System.out.println("  + Links examined: " + linksExamined);
+      System.out.println("  + Links made: " + linksMade);
+
+    }
+    for (Codeset codeset : codesetList) {
+      marshalCodeset(codeset, codesestFilenameMap.get(codeset.getType()));
+    }
+    
   }
 
   private void updateVis() throws IOException {

@@ -17,6 +17,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
@@ -24,7 +25,7 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import org.openimmunizationsoftware.dqa.codebase.util.gen.codebase.Codebase.Codeset.Code.CodeStatus;
+
 import org.openimmunizationsoftware.dqa.codebase.util.gen.codeset.Codeset;
 import org.openimmunizationsoftware.dqa.codebase.util.gen.codeset.Codeset.Code;
 import org.openimmunizationsoftware.dqa.codebase.util.gen.codeset.Codeset.Code.Reference;
@@ -37,31 +38,28 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-public class UpdateFromCDCSource {
+public class UpdateFromCDCSource
+{
   private static final String VACCINATION_VIS_DOC_TYPE_XML = "Vaccination VIS Doc Type.xml";
   private static final String VACCINATION_VIS_VACCINES_XML = "Vaccination VIS Vaccines.xml";
   private static final String VACCINATION_CPT_CODE_XML = "Vaccination CPT Code.xml";
   private static final String VACCINATION_VACCINATION_TRADE_NAME_XML = "Vaccination Trade Name.xml";
   private static final String VACCINE_GROUP_XML = "Vaccine Group.xml";
   private static final String VACCINATION_CVX_CODE_XML = "Vaccination CVX Code.xml";
-  private static final String VACCINATION_MANUFACTURER_CODE_XML =
-      "Vaccination Manufacturer Code.xml";
-  private static final String VACCINATION_NDC_CODE_UNIT_OF_USE_XML =
-      "Vaccination NDC Code Unit-of-Use.xml";
-  private static final String VACCINATION_NDC_CODE_UNIT_OF_SALE_XML =
-      "Vaccination NDC Code Unit-of-Sale.xml";
+  private static final String VACCINATION_MANUFACTURER_CODE_XML = "Vaccination Manufacturer Code.xml";
+  private static final String VACCINATION_NDC_CODE_UNIT_OF_USE_XML = "Vaccination NDC Code Unit-of-Use.xml";
+  private static final String VACCINATION_NDC_CODE_UNIT_OF_SALE_XML = "Vaccination NDC Code Unit-of-Sale.xml";
   private static final String VACCINATION_INJECTION_AMOUNT = "Injection Amount.xml";
   private static final String VACCINATION_INJECTION_GUIDANCE = "Injection Guidance.xml";
   private static final String VACCINATION_INJECTION_GUIDANCE_SITE = "Injection Guidance Site.xml";
   private static final String BODY_ROUTE = "Body Route.xml";
   private static final String BODY_SITE = "Body Site.xml";
 
-  private static final String[] ALL_XML = {VACCINATION_VIS_DOC_TYPE_XML,
-      VACCINATION_VIS_VACCINES_XML, VACCINATION_CPT_CODE_XML,
-      VACCINATION_VACCINATION_TRADE_NAME_XML, VACCINE_GROUP_XML, VACCINATION_CVX_CODE_XML,
-      VACCINATION_MANUFACTURER_CODE_XML, VACCINATION_NDC_CODE_UNIT_OF_USE_XML,
-      VACCINATION_NDC_CODE_UNIT_OF_SALE_XML, VACCINATION_INJECTION_AMOUNT,
-      VACCINATION_INJECTION_GUIDANCE, VACCINATION_INJECTION_GUIDANCE_SITE, BODY_ROUTE, BODY_SITE};
+  private static final String[] ALL_XML = { VACCINATION_VIS_DOC_TYPE_XML, VACCINATION_VIS_VACCINES_XML,
+      VACCINATION_CPT_CODE_XML, VACCINATION_VACCINATION_TRADE_NAME_XML, VACCINE_GROUP_XML, VACCINATION_CVX_CODE_XML,
+      VACCINATION_MANUFACTURER_CODE_XML, VACCINATION_NDC_CODE_UNIT_OF_USE_XML, VACCINATION_NDC_CODE_UNIT_OF_SALE_XML,
+      VACCINATION_INJECTION_AMOUNT, VACCINATION_INJECTION_GUIDANCE, VACCINATION_INJECTION_GUIDANCE_SITE, BODY_ROUTE,
+      BODY_SITE };
 
   private static final String CODE_SET_UNIT_OF_USE_LABEL = "Vaccination NDC for Unit-of-Use";
   private static final String CODE_SET_UNIT_OF_SALE_LABEL = "Vaccination NDC for Unit-of-Sale";
@@ -95,37 +93,31 @@ public class UpdateFromCDCSource {
     }
     baseLocationFile = new File(baseLocationString);
     if (!baseLocationFile.exists()) {
-      throw new IllegalArgumentException(
-          "Can't open codebase location: " + baseLocationFile.getCanonicalPath());
+      throw new IllegalArgumentException("Can't open codebase location: " + baseLocationFile.getCanonicalPath());
     }
     setLocationFile = new File(baseLocationFile, "base/sets");
     if (!setLocationFile.exists()) {
-      throw new IllegalArgumentException(
-          "Can't open code set location: " + setLocationFile.getCanonicalPath());
+      throw new IllegalArgumentException("Can't open code set location: " + setLocationFile.getCanonicalPath());
     }
 
     cdcSourceLocationFile = new File(baseLocationFile, "cdc-source");
     if (!cdcSourceLocationFile.exists()) {
-      throw new IllegalArgumentException(
-          "Can't open cdc source location: " + cdcSourceLocationFile.getCanonicalPath());
+      throw new IllegalArgumentException("Can't open cdc source location: " + cdcSourceLocationFile.getCanonicalPath());
     }
 
     linkerFile = new File(cdcSourceLocationFile, "NDC_Linker.txt");
     if (!linkerFile.exists()) {
-      throw new IllegalArgumentException(
-          "Can't open linker file: " + cdcSourceLocationFile.getCanonicalPath());
+      throw new IllegalArgumentException("Can't open linker file: " + cdcSourceLocationFile.getCanonicalPath());
     }
 
     unitSaleFile = new File(cdcSourceLocationFile, "NDC_Unit_sale.txt");
     if (!unitSaleFile.exists()) {
-      throw new IllegalArgumentException(
-          "Can't open Unit of Sale file: " + unitSaleFile.getCanonicalPath());
+      throw new IllegalArgumentException("Can't open Unit of Sale file: " + unitSaleFile.getCanonicalPath());
     }
 
     unitUseFile = new File(cdcSourceLocationFile, "NDC_Unit_use.txt");
     if (!unitUseFile.exists()) {
-      throw new IllegalArgumentException(
-          "Can't open Unit of Use file: " + unitUseFile.getCanonicalPath());
+      throw new IllegalArgumentException("Can't open Unit of Use file: " + unitUseFile.getCanonicalPath());
     }
 
     cvxFile = new File(cdcSourceLocationFile, "cvx.xml");
@@ -135,8 +127,7 @@ public class UpdateFromCDCSource {
 
     vac2vgFile = new File(cdcSourceLocationFile, "vac2vg.xml");
     if (!vac2vgFile.exists()) {
-      throw new IllegalArgumentException(
-          "Can't open Vac 2 Vaccine Group file: " + vac2vgFile.getCanonicalPath());
+      throw new IllegalArgumentException("Can't open Vac 2 Vaccine Group file: " + vac2vgFile.getCanonicalPath());
     }
 
     cptFile = new File(cdcSourceLocationFile, "cpt.xml");
@@ -146,8 +137,7 @@ public class UpdateFromCDCSource {
 
     cvxvisFile = new File(cdcSourceLocationFile, "cvxvis.xml");
     if (!cvxvisFile.exists()) {
-      throw new IllegalArgumentException(
-          "Can't open CVX VIS file: " + cvxvisFile.getCanonicalPath());
+      throw new IllegalArgumentException("Can't open CVX VIS file: " + cvxvisFile.getCanonicalPath());
     }
 
     mvxFile = new File(cdcSourceLocationFile, "mvx.xml");
@@ -157,8 +147,7 @@ public class UpdateFromCDCSource {
 
     tradenameFile = new File(cdcSourceLocationFile, "tradename.xml");
     if (!tradenameFile.exists()) {
-      throw new IllegalArgumentException(
-          "Can't open Tradename file: " + tradenameFile.getCanonicalPath());
+      throw new IllegalArgumentException("Can't open Tradename file: " + tradenameFile.getCanonicalPath());
     }
   }
 
@@ -167,7 +156,8 @@ public class UpdateFromCDCSource {
     update.go();
   }
 
-  private class Link implements Comparable<Link> {
+  private class Link implements Comparable<Link>
+  {
     public String outerId = "";
     public String innerId = "";
     public String mvx = "";
@@ -264,9 +254,9 @@ public class UpdateFromCDCSource {
                 }
                 if (isEmpty(c.getDescription())) {
                   c.setDescription(fullVaccinename);
-                }
-                if (notes.length() > 0) {
-                  c.setDescription(c.getDescription() + " Notes: " + notes);
+                  if (notes.length() > 0) {
+                    c.setDescription(c.getDescription() + " Notes: " + notes);
+                  }
                 }
                 if (c.getCodeStatus() == null) {
                   c.setCodeStatus(new Codeset.Code.CodeStatus());
@@ -331,6 +321,7 @@ public class UpdateFromCDCSource {
     Codeset codeset = unmarshalCodeset(filename);
     int countTotal = codeset.getCode().size();
     int countAdded = 0;
+    boolean updated = false;
     if (codeset != null) {
       try {
         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -368,17 +359,22 @@ public class UpdateFromCDCSource {
                 Codeset.Code c = getOrCreateCode(codeset, mvxCode);
                 if (isEmpty(c.getLabel())) {
                   c.setLabel(manufacturerName);
+                  updated = true;
                 }
                 if (isEmpty(c.getDescription())) {
                   c.setDescription(notes);
+                  updated = true;
                 }
                 if (c.getCodeStatus() == null) {
                   c.setCodeStatus(new Codeset.Code.CodeStatus());
                 }
                 if (c.getCodeStatus().getStatus() == null) {
                   c.getCodeStatus().setStatus("Valid");
+                  updated = true;
                 }
-                setUseDateBasedOnStatus(objectFactory, status, lastUpdate, c);
+                if (setUseDateBasedOnStatus(objectFactory, status, lastUpdate, c)) {
+                  updated = true;
+                }
               }
             }
           }
@@ -387,7 +383,10 @@ public class UpdateFromCDCSource {
         e.printStackTrace();
       }
 
-      marshalCodeset(codeset, filename);
+      if (updated || codeset.getCode().size() > countTotal) {
+        marshalCodeset(codeset, filename);
+      }
+
     }
     countAdded = codeset.getCode().size() - countTotal;
     countTotal = codeset.getCode().size();
@@ -395,17 +394,23 @@ public class UpdateFromCDCSource {
     System.out.println("  + Total:   " + countTotal);
   }
 
-  private void setUseDateBasedOnStatus(ObjectFactory objectFactory, String status, Date lastUpdate,
-      Codeset.Code c) {
+  private boolean setUseDateBasedOnStatus(ObjectFactory objectFactory, String status, Date lastUpdate, Codeset.Code c) {
     if (lastUpdate != null && (status.equals("Inactive") || status.equals("Active"))) {
       SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
       UseDate useDate = getUseDate(objectFactory, c);
       if (status.equals("Inactive") && useDate.getNotAfter() == null) {
-        useDate.setNotAfter(sdf.format(lastUpdate));
+        if (isEmpty(useDate.getNotAfter())) {
+          useDate.setNotAfter(sdf.format(lastUpdate));
+          return true;
+        }
       } else if (status.equals("Active") && useDate.getNotBefore() == null) {
-        useDate.setNotBefore(sdf.format(lastUpdate));
+        if (isEmpty(useDate.getNotBefore())) {
+          useDate.setNotBefore(sdf.format(lastUpdate));
+          return true;
+        }
       }
     }
+    return false;
   }
 
   private Date readDate(Node n3Node) {
@@ -432,6 +437,7 @@ public class UpdateFromCDCSource {
     Codeset codeset = unmarshalCodeset(filename);
     int countTotal = codeset.getCode().size();
     int countAdded = 0;
+    boolean updated = false;
     if (codeset != null) {
       try {
         ObjectFactory objectFactory = new ObjectFactory();
@@ -457,13 +463,13 @@ public class UpdateFromCDCSource {
 
               if (isEmpty(c.getLabel())) {
                 c.setLabel(shortDescription);
+                updated = true;
               }
 
               Reference reference = getReference(objectFactory, c);
               boolean found = false;
               for (LinkTo linkTo : reference.getLinkTo()) {
-                if (linkTo.getCodeset().equals(CODE_SET_CVX)
-                    && linkTo.getValue().equals(cvxForVaccineGroup)) {
+                if (linkTo.getCodeset().equals(CODE_SET_CVX) && linkTo.getValue().equals(cvxForVaccineGroup)) {
                   found = true;
                 }
               }
@@ -472,6 +478,7 @@ public class UpdateFromCDCSource {
                 reference.getLinkTo().add(linkTo);
                 linkTo.setCodeset(CODE_SET_CVX);
                 linkTo.setValue(cvxForVaccineGroup);
+                updated = true;
               }
 
               List<Codeset.Code> codeList = cvxToVaccineGroupListMap.get(cvxCode);
@@ -487,7 +494,9 @@ public class UpdateFromCDCSource {
       } catch (ParserConfigurationException | SAXException e) {
         e.printStackTrace();
       }
-      marshalCodeset(codeset, filename);
+      if (updated || codeset.getCode().size() > countTotal) {
+        marshalCodeset(codeset, filename);
+      }
       countAdded = codeset.getCode().size() - countTotal;
       countTotal = codeset.getCode().size();
       System.out.println("  + Added:   " + countAdded);
@@ -575,6 +584,7 @@ public class UpdateFromCDCSource {
     Codeset codeset = unmarshalCodeset(filename);
     int countTotal = codeset.getCode().size();
     int countAdded = 0;
+    boolean updated = false;
     if (codeset != null) {
       try {
         ObjectFactory objectFactory = new ObjectFactory();
@@ -604,16 +614,24 @@ public class UpdateFromCDCSource {
               Codeset.Code c = getOrCreateCode(codeset, cdcProductName);
               if (isEmpty(c.getLabel())) {
                 c.setLabel(shortDescription);
+                updated = true;
               }
               if (c.getCodeStatus() == null) {
                 c.setCodeStatus(objectFactory.createCodesetCodeCodeStatus());
               }
               if (isEmpty(c.getCodeStatus().getStatus())) {
                 c.getCodeStatus().setStatus("Valid");
+                updated = true;
               }
-              setUniqueLink(objectFactory, cvxCode, c, CODE_SET_CVX);
-              setUniqueLink(objectFactory, mvxCode, c, CODE_SET_MVX);
-              setUseDateBasedOnStatus(objectFactory, productNameStatus, lastUpdated, c);
+              if (setUniqueLink(objectFactory, cvxCode, c, CODE_SET_CVX)) {
+                updated = true;
+              }
+              if (setUniqueLink(objectFactory, mvxCode, c, CODE_SET_MVX)) {
+                updated = true;
+              }
+              if (setUseDateBasedOnStatus(objectFactory, productNameStatus, lastUpdated, c)) {
+                updated = true;
+              }
             }
           }
         }
@@ -621,7 +639,9 @@ public class UpdateFromCDCSource {
       } catch (ParserConfigurationException | SAXException e) {
         e.printStackTrace();
       }
-      marshalCodeset(codeset, filename);
+      if (updated || codeset.getCode().size() > countTotal) {
+        marshalCodeset(codeset, filename);
+      }
       countAdded = codeset.getCode().size() - countTotal;
       countTotal = codeset.getCode().size();
       System.out.println("  + Added:   " + countAdded);
@@ -632,6 +652,7 @@ public class UpdateFromCDCSource {
   private void crossLink() {
     System.out.println("Cross Linking the following:");
     Map<String, String> codesestFilenameMap = new HashMap<>();
+    Map<String, Codeset> codeSetMap = new HashMap<>();
     Map<String, Map<String, Code>> codesetCodeMap = new HashMap<>();
     List<Codeset> codesetList = new ArrayList<>();
     Set<Codeset> codesetChanged = new HashSet<>();
@@ -639,6 +660,7 @@ public class UpdateFromCDCSource {
       Codeset codeset = unmarshalCodeset(filename);
       codesetList.add(codeset);
       Map<String, Code> codeMap = new HashMap<>();
+      codeSetMap.put(codeset.getType(), codeset);
       codesetCodeMap.put(codeset.getType(), codeMap);
       for (Code code : codeset.getCode()) {
         codeMap.put(code.getValue(), code);
@@ -654,12 +676,23 @@ public class UpdateFromCDCSource {
       int linksRemoved = 0;
       for (Code code : codeset.getCode()) {
         if (code.getReference() != null) {
-          for (Iterator<LinkTo> linkToIt = code.getReference().getLinkTo().iterator(); linkToIt
-              .hasNext();) {
+          Set<String> alreadySeen = new HashSet<>();
+          for (Iterator<LinkTo> linkToIt = code.getReference().getLinkTo().iterator(); linkToIt.hasNext();) {
             LinkTo linkTo = linkToIt.next();
+            {
+              String alreadySeenKey = linkTo.getCodeset() + "." + linkTo.getValue();
+              if (alreadySeen.contains(alreadySeenKey)) {
+                System.err.println("  + Link " + alreadySeenKey + " is already mentioned, removing");
+                linkToIt.remove();
+                linksRemoved++;
+                continue;
+              }
+              alreadySeen.add(alreadySeenKey);
+            }
             linksExamined++;
             String otherCodesetType = linkTo.getCodeset();
             Map<String, Code> otherCodeMap = codesetCodeMap.get(otherCodesetType);
+            Codeset otherCodeset = codeSetMap.get(otherCodesetType);
             if (otherCodeMap == null) {
               System.err.println("  + Unable to find link to codeset '" + otherCodesetType + "'");
             } else {
@@ -668,9 +701,9 @@ public class UpdateFromCDCSource {
               } else {
                 Code otherCode = otherCodeMap.get(linkTo.getValue());
                 if (otherCode == null) {
-                  System.err.println("  + Unable to find link from '" + code.getValue()
-                      + "' in codeset '" + codeset.getType() + "' to code '" + linkTo.getValue()
-                      + "' in codeset '" + otherCodesetType + "'");
+                  System.err
+                      .println("  + Unable to find link from '" + code.getValue() + "' in codeset '" + codeset.getType()
+                          + "' to code '" + linkTo.getValue() + "' in codeset '" + otherCodesetType + "'");
                   linkToIt.remove();
                   linksRemoved++;
                   codesetChanged.add(codeset);
@@ -682,8 +715,7 @@ public class UpdateFromCDCSource {
                   String type = codeset.getType();
                   String value = code.getValue();
                   for (LinkTo otherLinkTo : otherCode.getReference().getLinkTo()) {
-                    if (otherLinkTo.getCodeset().equals(type)
-                        && otherLinkTo.getValue().equals(value)) {
+                    if (otherLinkTo.getCodeset().equals(type) && otherLinkTo.getValue().equals(value)) {
                       found = true;
                       break;
                     }
@@ -694,7 +726,7 @@ public class UpdateFromCDCSource {
                     otherLinkTo.setValue(value);
                     otherCode.getReference().getLinkTo().add(otherLinkTo);
                     linksMade++;
-                    codesetChanged.add(codeset);
+                    codesetChanged.add(otherCodeset);
                   }
                 }
               }
@@ -707,7 +739,9 @@ public class UpdateFromCDCSource {
       System.out.println("  + Links made:     " + linksMade);
 
     }
+    System.out.println("Saving codesets that have changed");
     for (Codeset codeset : codesetChanged) {
+      System.out.println("  + Saving " + codeset.getLabel());
       marshalCodeset(codeset, codesestFilenameMap.get(codeset.getType()));
     }
 
@@ -723,6 +757,8 @@ public class UpdateFromCDCSource {
     int countTotalVac = codesetVac.getCode().size();
     int countAddedDoc = 0;
     int countAddedVac = 0;
+    boolean updatedDoc = false;
+    boolean updatedVac = false;
     if (codesetDoc != null && codesetVac != null) {
       try {
         ObjectFactory objectFactory = new ObjectFactory();
@@ -766,41 +802,54 @@ public class UpdateFromCDCSource {
                 Codeset.Code c = getOrCreateCode(codesetDoc, fullyEncodedString);
                 if (isEmpty(c.getLabel())) {
                   c.setLabel(visDocumentName);
+                  updatedDoc = true;
                 }
                 if (c.getCodeStatus() == null) {
                   c.setCodeStatus(objectFactory.createCodesetCodeCodeStatus());
                 }
                 if (isEmpty(c.getCodeStatus().getStatus())) {
                   c.getCodeStatus().setStatus("Valid");
+                  updatedDoc = true;
                 }
                 if (!isEmpty(cvxCode)) {
-                  setUniqueLink(objectFactory, cvxCode, c, CODE_SET_VACCINATION_VIS_VACCINES);
+                  if (setUniqueLink(objectFactory, cvxCode, c, CODE_SET_VACCINATION_VIS_VACCINES)) {
+                    updatedDoc = true;
+                  }
                 }
                 if (visEditionDate != null) {
-                  SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
-                  UseDate useDate = getUseDate(objectFactory, c);
-                  useDate.setNotBefore(sdf.format(visEditionDate));
+                  if (c.getUseDate() == null || isEmpty(c.getUseDate().getNotBefore())) {
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+                    UseDate useDate = getUseDate(objectFactory, c);
+                    useDate.setNotBefore(sdf.format(visEditionDate));
+                    updatedDoc = true;
+                  }
                 }
               }
               if (!isEmpty(cvxCode)) {
                 Codeset.Code c = getOrCreateCode(codesetVac, cvxCode);
                 if (isEmpty(c.getLabel())) {
                   c.setLabel(visDocumentName);
+                  updatedVac = true;
                 }
                 if (c.getCodeStatus() == null) {
                   c.setCodeStatus(objectFactory.createCodesetCodeCodeStatus());
                 }
                 if (isEmpty(c.getCodeStatus().getStatus())) {
                   c.getCodeStatus().setStatus("Valid");
+                  updatedVac = true;
                 }
                 if (!isEmpty(fullyEncodedString)) {
-                  setUniqueLink(objectFactory, fullyEncodedString, c,
-                      CODE_SET_VACCINATION_VIS_DOC_TYPE);
+                  if (setUniqueLink(objectFactory, fullyEncodedString, c, CODE_SET_VACCINATION_VIS_DOC_TYPE)) {
+                    updatedVac = true;
+                  }
                 }
                 if (visEditionDate != null) {
-                  SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
-                  UseDate useDate = getUseDate(objectFactory, c);
-                  useDate.setNotBefore(sdf.format(visEditionDate));
+                  if (c.getUseDate() == null || isEmpty(c.getUseDate().getNotBefore())) {
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+                    UseDate useDate = getUseDate(objectFactory, c);
+                    useDate.setNotBefore(sdf.format(visEditionDate));
+                    updatedVac = true;
+                  }
                 }
               }
             }
@@ -810,8 +859,13 @@ public class UpdateFromCDCSource {
       } catch (ParserConfigurationException | SAXException e) {
         e.printStackTrace();
       }
-      marshalCodeset(codesetDoc, filenameDoc);
-      marshalCodeset(codesetVac, filenameVac);
+      if (updatedDoc || codesetDoc.getCode().size() > countTotalDoc) {
+        marshalCodeset(codesetDoc, filenameDoc);
+      }
+
+      if (updatedVac || codesetVac.getCode().size() > countTotalVac) {
+        marshalCodeset(codesetVac, filenameVac);
+      }
       countAddedDoc = codesetDoc.getCode().size() - countTotalDoc;
       countTotalDoc = codesetDoc.getCode().size();
       countAddedVac = codesetVac.getCode().size() - countTotalVac;
@@ -823,8 +877,7 @@ public class UpdateFromCDCSource {
     }
   }
 
-  private boolean setUniqueLink(ObjectFactory objectFactory, String value, Codeset.Code c,
-      String codeSetName) {
+  private boolean setUniqueLink(ObjectFactory objectFactory, String value, Codeset.Code c, String codeSetName) {
     if (!isEmpty(value)) {
       Reference reference = getReference(objectFactory, c);
       boolean found = false;
@@ -974,7 +1027,7 @@ public class UpdateFromCDCSource {
             boolean needToAdd = true;
             for (LinkTo linkTo : reference.getLinkTo()) {
               if (linkTo.getCodeset().equals(CODE_SET_UNIT_OF_SALE_TYPE)
-                  && linkTo.getValue().equals(innerCode.getValue())) {
+                  && linkTo.getValue().equals(outerCode.getValue())) {
                 // don't need to add
                 needToAdd = false;
               }
@@ -1029,8 +1082,7 @@ public class UpdateFromCDCSource {
     }
   }
 
-  private Codeset readCodsetUnitOfSale(Map<String, Code> codeMap)
-      throws FileNotFoundException, IOException {
+  private Codeset readCodsetUnitOfSale(Map<String, Code> codeMap) throws FileNotFoundException, IOException {
     System.out.println("Reading Unit of Sale file");
     ObjectFactory objectFactory = new ObjectFactory();
     Codeset codeset = unmarshalCodeset(VACCINATION_NDC_CODE_UNIT_OF_SALE_XML);
@@ -1052,8 +1104,7 @@ public class UpdateFromCDCSource {
             justCreated = true;
           }
           if (isEmpty(code.getDescription())) {
-            code.setDescription(parts[UNIT_OF_SALE_OUTERLABELERNAME] + " - "
-                + parts[UNIT_OF_SALE_OUTERGENERICNAME]);
+            code.setDescription(parts[UNIT_OF_SALE_OUTERLABELERNAME] + " - " + parts[UNIT_OF_SALE_OUTERGENERICNAME]);
           }
           setCodeStatusAsValid(objectFactory, code);
           String cvxCode = parts[UNIT_OF_SALE_CVX_CODE];
@@ -1067,13 +1118,13 @@ public class UpdateFromCDCSource {
             String labeler = parts[UNIT_OF_SALE_OUTERLABELERNAME];
             String generic = parts[UNIT_OF_SALE_OUTERGENERICNAME];
             String ndc11 = parts[UNIT_OF_SALE_NDC11];
-            String ndcAlt = parts[UNIT_OF_SALE_OUTERLABELER] + "-"
-                + parts[UNIT_OF_SALE_OUTERPRODUCT] + "-" + parts[UNIT_OF_SALE_OUTERPACKAGE];
-            addDeprecatedNdc(objectFactory, codeset, labeler, generic, ndc11, ndcAlt, label,
-                lastUpdate, "Use full 11-digit format instead of 10-digit format");
+            String ndcAlt = parts[UNIT_OF_SALE_OUTERLABELER] + "-" + parts[UNIT_OF_SALE_OUTERPRODUCT] + "-"
+                + parts[UNIT_OF_SALE_OUTERPACKAGE];
+            addDeprecatedNdc(objectFactory, codeset, labeler, generic, ndc11, ndcAlt, label, lastUpdate,
+                "Use full 11-digit format instead of 10-digit format");
             ndcAlt = ndc11.replaceAll("\\-", "");
-            addDeprecatedNdc(objectFactory, codeset, labeler, generic, ndc11, ndcAlt, label,
-                lastUpdate, "Use 11-digit format with dashes");
+            addDeprecatedNdc(objectFactory, codeset, labeler, generic, ndc11, ndcAlt, label, lastUpdate,
+                "Use 11-digit format with dashes");
           }
           codeValuesAlreadyDefined.remove(ndc);
         }
@@ -1092,8 +1143,7 @@ public class UpdateFromCDCSource {
     in.close();
   }
 
-  private void setUseDateAfter(ObjectFactory objectFactory, Codeset codeset,
-      Set<String> codeValuesAlreadyDefined) {
+  private void setUseDateAfter(ObjectFactory objectFactory, Codeset codeset, Set<String> codeValuesAlreadyDefined) {
     SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
     Calendar calendar = Calendar.getInstance();
     calendar.add(Calendar.MONTH, 6);
@@ -1102,8 +1152,7 @@ public class UpdateFromCDCSource {
     String yearFromNow = sdf.format(calendar.getTime());
     for (Codeset.Code code : codeset.getCode()) {
       if (codeValuesAlreadyDefined.contains(code.getValue())) {
-        System.err.println("  + NDC " + code.getValue()
-            + " was dropped from CDC list! Setting to expire in 1 year. ");
+        System.err.println("  + NDC " + code.getValue() + " was dropped from CDC list! Setting to expire in 1 year. ");
         setUseDateNotExpectedAfter(sixMonthsFromNow, code, objectFactory);
         setUseDateNotAfter(yearFromNow, code, objectFactory);
       }
@@ -1164,9 +1213,8 @@ public class UpdateFromCDCSource {
     }
   }
 
-
-  private void addDeprecatedNdc(ObjectFactory objectFactory, Codeset codeset, String labeler,
-      String generic, String ndc11, String ndcAlt, String label, String lastUpdate, String reason) {
+  private void addDeprecatedNdc(ObjectFactory objectFactory, Codeset codeset, String labeler, String generic,
+      String ndc11, String ndcAlt, String label, String lastUpdate, String reason) {
     if (ndcAlt.length() > 3 && !ndcAlt.equals(ndc11)) {
       Code code10 = objectFactory.createCodesetCode();
       codeset.getCode().add(code10);
@@ -1176,8 +1224,7 @@ public class UpdateFromCDCSource {
       Code.CodeStatus codeStatus10 = objectFactory.createCodesetCodeCodeStatus();
       code10.setCodeStatus(codeStatus10);
       codeStatus10.setStatus("Deprecated");
-      Codeset.Code.CodeStatus.Deprecated deprecated =
-          objectFactory.createCodesetCodeCodeStatusDeprecated();
+      Codeset.Code.CodeStatus.Deprecated deprecated = objectFactory.createCodesetCodeCodeStatusDeprecated();
       codeStatus10.setDeprecated(deprecated);
       SimpleDateFormat sdfIn = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
       SimpleDateFormat sdfOut = new SimpleDateFormat("yyyyMMdd");
@@ -1208,9 +1255,7 @@ public class UpdateFromCDCSource {
     return parts;
   }
 
-
-  private Codeset readCodsetUnitOfUse(Map<String, Code> codeMap)
-      throws FileNotFoundException, IOException {
+  private Codeset readCodsetUnitOfUse(Map<String, Code> codeMap) throws FileNotFoundException, IOException {
     System.out.println("Reading Unit of Use file");
     ObjectFactory objectFactory = new ObjectFactory();
     Codeset codeset = unmarshalCodeset(VACCINATION_NDC_CODE_UNIT_OF_USE_XML);
@@ -1232,8 +1277,7 @@ public class UpdateFromCDCSource {
             justCreated = true;
           }
           if (isEmpty(code.getDescription())) {
-            code.setDescription(parts[UNIT_OF_USE_USEUNITLABELERNAME] + " - "
-                + parts[UNIT_OF_USE_USEUNITGENERICNAME]);
+            code.setDescription(parts[UNIT_OF_USE_USEUNITLABELERNAME] + " - " + parts[UNIT_OF_USE_USEUNITGENERICNAME]);
           }
           setCodeStatusAsValid(objectFactory, code);
           String cvxCode = parts[UNIT_OF_USE_CVX_CODE];
@@ -1247,13 +1291,13 @@ public class UpdateFromCDCSource {
             String labeler = parts[UNIT_OF_USE_USEUNITLABELERNAME];
             String generic = parts[UNIT_OF_USE_USEUNITGENERICNAME];
             String ndc11 = parts[UNIT_OF_USE_NDC11];
-            String ndcAlt = parts[UNIT_OF_USE_USEUNITLABELER] + "-"
-                + parts[UNIT_OF_USE_USEUNITPRODUCT] + "-" + parts[UNIT_OF_USE_USEUNITPACKAGE];
-            addDeprecatedNdc(objectFactory, codeset, labeler, generic, ndc11, ndcAlt, label,
-                lastUpdate, "Use full 11-digit format instead of 10-digit format");
+            String ndcAlt = parts[UNIT_OF_USE_USEUNITLABELER] + "-" + parts[UNIT_OF_USE_USEUNITPRODUCT] + "-"
+                + parts[UNIT_OF_USE_USEUNITPACKAGE];
+            addDeprecatedNdc(objectFactory, codeset, labeler, generic, ndc11, ndcAlt, label, lastUpdate,
+                "Use full 11-digit format instead of 10-digit format");
             ndcAlt = ndc11.replaceAll("\\-", "");
-            addDeprecatedNdc(objectFactory, codeset, labeler, generic, ndc11, ndcAlt, label,
-                lastUpdate, "Use 11-digit format with dashes");
+            addDeprecatedNdc(objectFactory, codeset, labeler, generic, ndc11, ndcAlt, label, lastUpdate,
+                "Use 11-digit format with dashes");
           }
           codeValuesAlreadyDefined.remove(ndc);
         }
@@ -1274,11 +1318,10 @@ public class UpdateFromCDCSource {
     return codeValuesAlreadyDefined;
   }
 
-
   private void checkNDC(String[] parts, String ndc) {
     if (ndc.length() != 13) {
-      throw new IllegalArgumentException("NDC is not the expected length, found \"" + ndc
-          + "\" for inner id " + parts[0] + " but it does not look like an NDC");
+      throw new IllegalArgumentException("NDC is not the expected length, found \"" + ndc + "\" for inner id "
+          + parts[0] + " but it does not look like an NDC");
     }
   }
 
@@ -1329,8 +1372,7 @@ public class UpdateFromCDCSource {
     while ((line = in.readLine()) != null) {
       if (line.length() > 3) {
         String[] parts = readAndTrim(line);
-        if (parts.length > LINKER_MVX && parts[LINKER_OUTER_ID].length() > 0
-            && parts[LINKER_INNER_ID].length() > 0) {
+        if (parts.length > LINKER_MVX && parts[LINKER_OUTER_ID].length() > 0 && parts[LINKER_INNER_ID].length() > 0) {
           Link link = new Link();
           link.outerId = parts[LINKER_OUTER_ID];
           link.innerId = parts[LINKER_INNER_ID];

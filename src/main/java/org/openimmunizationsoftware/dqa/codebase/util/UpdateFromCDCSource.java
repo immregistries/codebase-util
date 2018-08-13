@@ -47,6 +47,7 @@ public class UpdateFromCDCSource
   private static final String VACCINE_GROUP_XML = "Vaccine Group.xml";
   private static final String VACCINATION_CVX_CODE_XML = "Vaccination CVX Code.xml";
   private static final String VACCINATION_MANUFACTURER_CODE_XML = "Vaccination Manufacturer Code.xml";
+  private static final String VACCINATION_LOT_NUMBER_PATTERN_XML = "Vaccination Lot Number Pattern.xml";
   private static final String VACCINATION_NDC_CODE_UNIT_OF_USE_XML = "Vaccination NDC Code Unit-of-Use.xml";
   private static final String VACCINATION_NDC_CODE_UNIT_OF_SALE_XML = "Vaccination NDC Code Unit-of-Sale.xml";
   private static final String VACCINATION_INJECTION_AMOUNT = "Injection Amount.xml";
@@ -59,7 +60,7 @@ public class UpdateFromCDCSource
       VACCINATION_CPT_CODE_XML, VACCINATION_VACCINATION_TRADE_NAME_XML, VACCINE_GROUP_XML, VACCINATION_CVX_CODE_XML,
       VACCINATION_MANUFACTURER_CODE_XML, VACCINATION_NDC_CODE_UNIT_OF_USE_XML, VACCINATION_NDC_CODE_UNIT_OF_SALE_XML,
       VACCINATION_INJECTION_AMOUNT, VACCINATION_INJECTION_GUIDANCE, VACCINATION_INJECTION_GUIDANCE_SITE, BODY_ROUTE,
-      BODY_SITE };
+      BODY_SITE, VACCINATION_LOT_NUMBER_PATTERN_XML };
 
   private static final String CODE_SET_UNIT_OF_USE_LABEL = "Vaccination NDC for Unit-of-Use";
   private static final String CODE_SET_UNIT_OF_SALE_LABEL = "Vaccination NDC for Unit-of-Sale";
@@ -70,6 +71,7 @@ public class UpdateFromCDCSource
   private static final String CODE_SET_VACCINE_GROUP = "VACCINE_GROUP";
   private static final String CODE_SET_VACCINATION_VIS_DOC_TYPE = "VACCINATION_VIS_DOC_TYPE";
   private static final String CODE_SET_VACCINATION_VIS_VACCINES = "VACCINATION_VIS_VACCINES";
+  private static final String CODE_SET_LOT_NUMBER_PATTERN = "VACCINATION_LOT_NUMBER_PATTERN";
 
   public static final String DEFAULT_CODEBASE_LOCATION = "../codebase";
 

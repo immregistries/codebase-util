@@ -17,6 +17,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -201,6 +203,7 @@ public class UpdateFromCDCSource
     updateVis();
     updateMvx();
     updateTradename();
+    verifyLotNumberPatterns();
 
     crossLink();
   }
@@ -1060,6 +1063,24 @@ public class UpdateFromCDCSource
       linkTo.setCodeset(CODE_SET_MVX);
       linkTo.setValue(link.mvx);
     }
+  }
+
+  private void verifyLotNumberPatterns() throws IOException {
+    System.out.println("Lot Number: checking reg expressions");
+    String filename = VACCINATION_LOT_NUMBER_PATTERN_XML;
+    Codeset codeset = unmarshalCodeset(filename);
+    int countOkay = 0;
+    for (Code code : codeset.getCode()) {
+      try {
+        Pattern.compile(code.getValue());
+        countOkay++;
+      } catch (PatternSyntaxException pse) {
+        pse.printStackTrace();
+        System.err.println("Lot number regular expression was not recognized: " + code.getValue());
+      }
+    }
+    System.out.println("  + Verified: " + countOkay);
+    System.out.println("  + Total:    " + codeset.getCode().size());
   }
 
   private Reference getReference(ObjectFactory objectFactory, Code code) {
